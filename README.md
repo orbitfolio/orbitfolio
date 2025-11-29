@@ -9,7 +9,7 @@ Beautiful, serverless portfolio tracker for stocks, crypto, gold, MFs, real esta
 4. Deploy: Connect to Vercel → Auto-builds.
 
 ## Features
-- Live prices: Yahoo Finance + CoinGecko (global exchanges)
+- Live prices: Yahoo Finance + CoinGecko (global exchanges) 
 - Analytics: TA indicators, correlations, XIRR, risks
 - Assets: NSE/BSE, NYSE/TSX, 100+ markets, gold, NFTs
 - Privacy: CSV/manual only, no wallet connects
