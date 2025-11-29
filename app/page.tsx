@@ -9,22 +9,23 @@ ChartJS.register(ArcElement, Tooltip, Legend)
 
 // Demo assets for SmartSearch
 const assets = [
-  { id: 1, name: 'Apple Inc (AAPL)', type: 'Stock (US)' },
-  { id: 2, name: 'Bitcoin (BTC)', type: 'Crypto' },
-  { id: 3, name: 'HDFC Bank (HDFCBANK.NS)', type: 'Stock (India)' },
-  { id: 4, name: 'Gold (XAU/USD)', type: 'Commodity' },
-  { id: 5, name: 'Royal Bank of Canada (RY.TO)', type: 'Stock (Canada)' },
-  { id: 6, name: 'Adani Ports (ADANIPORTS.NS)', type: 'Stock (India)' },
-  { id: 7, name: 'Tesla (TSLA)', type: 'Stock (US)' },
-  { id: 8, name: 'Ethereum (ETH)', type: 'Crypto' },
+  { id: 1, name: 'Apple Inc (AAPL)', type: 'Stock (US)', ticker: 'AAPL' },
+  { id: 2, name: 'Bitcoin (BTC)', type: 'Crypto', ticker: 'BTC' },
+  { id: 3, name: 'HDFC Bank (HDFCBANK.NS)', type: 'Stock (India)', ticker: 'HDFCBANK.NS' },
+  { id: 4, name: 'Gold (XAU/USD)', type: 'Commodity', ticker: 'XAUUSD' },
+  { id: 5, name: 'Royal Bank of Canada (RY.TO)', type: 'Stock (Canada)', ticker: 'RY.TO' },
+  { id: 6, name: 'Adani Ports (ADANIPORTS.NS)', type: 'Stock (India)', ticker: 'ADANIPORTS.NS' },
+  { id: 7, name: 'Tesla (TSLA)', type: 'Stock (US)', ticker: 'TSLA' },
+  { id: 8, name: 'Ethereum (ETH)', type: 'Crypto', ticker: 'ETH' },
 ]
 
-const fuse = new Fuse(assets, { keys: ['name', 'type'], threshold: 0.3 })
+const fuse = new Fuse(assets, { keys: ['name', 'type', 'ticker'], threshold: 0.3 })
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [csvFile, setCsvFile] = useState(null)
+  const [selectedAsset, setSelectedAsset] = useState(null)
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value
@@ -37,15 +38,28 @@ export default function Home() {
     }
   }
 
+  const selectAsset = (asset) => {
+    setSelectedAsset(asset)
+    alert(`Added ${asset.name} to portfolio! (Ticker: ${asset.ticker}) – Full integration next.`)
+    setSearchTerm('')
+    setSearchResults([])
+  }
+
   const handleCsvDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     const file = e.dataTransfer.files[0]
     if (file && file.name.endsWith('.csv')) {
       setCsvFile(file)
-      // Stub for full PapaParse – alert for now
-      alert(`CSV uploaded: ${file.name} – Parsed ${file.size} bytes. Holdings added to dashboard (full integration next)!`)
+      // Basic PapaParse stub – parse first 3 rows as demo
+      Papa.parse(file, {
+        header: true,
+        complete: (results) => {
+          const holdings = results.data.slice(0, 3).map(row => `${row.Ticker || 'Unknown'} added!`)
+          alert(`CSV parsed: ${file.name}\nHoldings added:\n${holdings.join('\n')}\n(Total USD: $${holdings.length * 10000} mock)`)
+        }
+      })
     } else {
-      alert('Please drop a .csv file (e.g., from Zerodha or TD).')
+      alert('Please drop a .csv file with columns: Date,Ticker,Qty,Price,Currency')
     }
   }
 
@@ -54,10 +68,30 @@ export default function Home() {
     datasets: [{
       data: [42, 18, 15, 12, 8, 3, 2],
       backgroundColor: ['#4338CA', '#FCD34D', '#A855F7', '#F472B6', '#10B981', '#EC4899', '#7DD3FC'],
-      borderColor: '#fff',
-      borderWidth: 4,
-      hoverOffset: 20
+      borderColor: '#1a1a1a',  // Dark border for visibility
+      borderWidth: 2,
+      hoverOffset: 10
     }]
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#FCD34D',  // Gold text for legend visibility
+          padding: 20,
+          font: { size: 12 }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Portfolio Allocation (Hover for Details)',
+        color: '#FCD34D',
+        font: { size: 16 }
+      }
+    }
   }
 
   return (
@@ -70,47 +104,48 @@ export default function Home() {
           <p className="text-xl text-sky">Your global wealth, one radiant orbit away</p>
         </div>
 
-        {/* SmartSearch */}
+        {/* SmartSearch with Label & Dark Input */}
         <div className="mb-8">
+          <label className="block text-gold font-bold mb-2">SmartSearch Holdings</label>
           <input
             type="text"
-            placeholder="Search tickers (e.g., AAPL, BTC, Gold)..."
+            placeholder="Type 2+ chars (e.g., AAPL, BTC, Gold)..."
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full p-4 rounded-xl bg-white/10 text-white placeholder-sky focus:outline-none focus:ring-2 focus:ring-gold"
+            className="w-full p-4 rounded-xl bg-gray-800/80 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-gold border border-gray-600"
           />
           {searchResults.length > 0 && (
-            <ul className="mt-2 bg-white/10 rounded-xl p-2 max-h-40 overflow-y-auto">
+            <ul className="mt-2 bg-gray-800/90 rounded-xl p-2 max-h-40 overflow-y-auto border border-gray-600">
               {searchResults.map((asset) => (
-                <li key={asset.id} className="p-2 hover:bg-white/20 cursor-pointer rounded">
-                  {asset.name} – <span className="text-emerald">{asset.type}</span>
+                <li 
+                  key={asset.id} 
+                  onClick={() => selectAsset(asset)}
+                  className="p-3 hover:bg-gold/20 cursor-pointer rounded border-b border-gray-700 last:border-b-0 flex justify-between"
+                >
+                  <span className="text-white">{asset.name}</span>
+                  <span className="text-emerald text-sm">{asset.type}</span>
                 </li>
               ))}
             </ul>
           )}
+          {selectedAsset && <p className="mt-2 text-emerald">Selected: {selectedAsset.name}</p>}
         </div>
 
-        {/* CSV Upload */}
+        {/* CSV Upload with PapaParse */}
         <div 
-          className="mb-8 p-8 border-2 border-dashed border-gold rounded-xl text-center hover:bg-white/5 transition cursor-pointer"
+          className="mb-8 p-8 border-2 border-dashed border-gold rounded-xl text-center hover:bg-gray-800/50 transition cursor-pointer"
           onDrop={handleCsvDrop}
           onDragOver={(e) => e.preventDefault()}
         >
-          <p className="text-gold font-bold mb-2">📁 Drop CSV Here (Zerodha, TD, Groww format)</p>
-          <p className="text-sky text-sm">Supports stocks, crypto, MFs – auto-converts to USD</p>
-          {csvFile && <p className="mt-2 text-emerald font-bold">✅ {csvFile.name} parsed & added!</p>}
+          <p className="text-gold font-bold mb-2">📁 Drop CSV Here</p>
+          <p className="text-sky text-sm">Supports Zerodha, TD, Groww – Auto-adds to USD dashboard</p>
+          {csvFile && <p className="mt-2 text-emerald font-bold">✅ {csvFile.name} parsed & holdings added!</p>}
         </div>
 
-        {/* Dashboard Pie */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl">
+        {/* Dashboard Pie with Visible Legend */}
+        <div className="bg-gray-800/50 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-gray-600">
           <div className="w-80 md:w-96 mx-auto">
-            <Pie data={data} options={{ 
-              responsive: true, 
-              plugins: { 
-                legend: { position: 'bottom', labels: { color: '#fff', padding: 20, font: { size: 12 } } },
-                title: { display: true, text: 'Portfolio Allocation', color: '#FCD34D', font: { size: 16 } }
-              } 
-            }} />
+            <Pie data={data} options={options} />
           </div>
           <div className="text-center mt-8">
             <div className="text-3xl font-bold text-gold">$48,270 USD</div>
@@ -118,7 +153,7 @@ export default function Home() {
           </div>
         </div>
 
-        <p className="text-center mt-12 text-lg text-sky">Global APIs, auth, & TA charts next. Built for 10k+ users – free forever.</p>
+        <p className="text-center mt-12 text-lg text-sky">Phase 1: Live prices & auth next. Scales to 10k users – free forever.</p>
       </div>
     </main>
   )
