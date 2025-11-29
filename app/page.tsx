@@ -9,16 +9,25 @@ import Fuse from 'fuse.js'
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const assets = [
-  { id: 1, name: 'Apple Inc (AAPL)', type: 'Stock (US)', ticker: 'AAPL' },
-  { id: 2, name: 'Bitcoin (BTC)', type: 'Crypto', ticker: 'BTC' },
-  { id: 3, name: 'HDFC Bank (HDFCBANK.NS)', type: 'Stock (India)', ticker: 'HDFCBANK.NS' },
-  { id: 4, name: 'Gold (XAU/USD)', type: 'Commodity', ticker: 'XAUUSD' },
-  { id: 5, name: 'Royal Bank of Canada (RY.TO)', type: 'Stock (Canada)', ticker: 'RY.TO' },
-  { id: 6, name: 'Adani Ports (ADANIPORTS.NS)', type: 'Stock (India)', ticker: 'ADANIPORTS.NS' },
-  { id: 7, name: 'Tesla (TSLA)', type: 'Stock (US)', ticker: 'TSLA' },
-  { id: 8, name: 'Ethereum (ETH)', type: 'Crypto', ticker: 'ETH' },
+  { id: 1, name: 'Apple Inc', ticker: 'AAPL', type: 'Stock • US' },
+  { id: 2, name: 'Microsoft', ticker: 'MSFT', type: 'Stock • US' },
+  { id: 3, name: 'Google', ticker: 'GOOGL', type: 'Stock • US' },
+  { id: 4, name: 'Tesla', ticker: 'TSLA', type: 'Stock • US' },
+  { id: 5, name: 'Nvidia', ticker: 'NVDA', type: 'Stock • US' },
+  { id: 6, name: 'Amazon', ticker: 'AMZN', type: 'Stock • US' },
+  { id: 7, name: 'Bitcoin', ticker: 'BTC', type: 'Crypto' },
+  { id: 8, name: 'Ethereum', ticker: 'ETH', type: 'Crypto' },
+  { id: 9, name: 'Gold Spot', ticker: 'XAUUSD', type: 'Commodity' },
+  { id: 10, name: 'Reliance Industries', ticker: 'RELIANCE.NS', type: 'Stock • India' },
+  { id: 11, name: 'HDFC Bank', ticker: 'HDFCBANK.NS', type: 'Stock • India' },
+  { id: 12, name: 'TCS', ticker: 'TCS.NS', type: 'Stock • India' },
+  { id: 13, name: 'Infosys', ticker: 'INFY', type: 'Stock • India' },
+  { id: 14, name: 'Royal Bank of Canada', ticker: 'RY.TO', type: 'Stock • Canada' },
+  { id: 15, name: 'Shopify', ticker: 'SHOP.TO', type: 'Stock • Canada' },
+  { id: 16, name: 'Adani Ports', ticker: 'ADANIPORTS.NS', type: 'Stock • India' },
+  { id: 17, name: 'S&P 500 ETF', ticker: 'VOO', type: 'ETF' },
+  { id: 18, name: 'Gold ETF', ticker: 'GLD', type: 'ETF' },
 ]
-
 const fuse = new Fuse(assets, { keys: ['name', 'type', 'ticker'], threshold: 0.3 })
 
 export default function Home() {
