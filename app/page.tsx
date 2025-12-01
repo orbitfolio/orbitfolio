@@ -1,165 +1,168 @@
-'use client'
+'use client';
 
-import Papa from 'papaparse'
-import { Pie } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
-import { useState } from 'react'
-import Fuse from 'fuse.js'
-
-ChartJS.register(ArcElement, Tooltip, Legend)
-
-const assets = [
-  { id: 1, name: 'Apple Inc', ticker: 'AAPL', type: 'Stock • US' },
-  { id: 2, name: 'Microsoft', ticker: 'MSFT', type: 'Stock • US' },
-  { id: 3, name: 'Google', ticker: 'GOOGL', type: 'Stock • US' },
-  { id: 4, name: 'Tesla', ticker: 'TSLA', type: 'Stock • US' },
-  { id: 5, name: 'Nvidia', ticker: 'NVDA', type: 'Stock • US' },
-  { id: 6, name: 'Amazon', ticker: 'AMZN', type: 'Stock • US' },
-  { id: 7, name: 'Bitcoin', ticker: 'BTC', type: 'Crypto' },
-  { id: 8, name: 'Ethereum', ticker: 'ETH', type: 'Crypto' },
-  { id: 9, name: 'Gold Spot', ticker: 'XAUUSD', type: 'Commodity' },
-  { id: 10, name: 'Reliance Industries', ticker: 'RELIANCE.NS', type: 'Stock • India' },
-  { id: 11, name: 'HDFC Bank', ticker: 'HDFCBANK.NS', type: 'Stock • India' },
-  { id: 12, name: 'TCS', ticker: 'TCS.NS', type: 'Stock • India' },
-  { id: 13, name: 'Royal Bank of Canada', ticker: 'RY.TO', type: 'Stock • Canada' },
-  { id: 14, name: 'Shopify', ticker: 'SHOP.TO', type: 'Stock • Canada' },
-  { id: 15, name: 'Adani Ports', ticker: 'ADANIPORTS.NS', type: 'Stock • India' },
-]
-
-const fuse = new Fuse(assets, { keys: ['name', 'ticker', 'type'], threshold: 0.3 })
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase, signInWithGoogle, signInWithGithub } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, PieChart, BarChart3, Shield, Zap, Globe } from 'lucide-react';
 
 export default function Home() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [results, setResults] = useState<any[]>([])
-  const [holdings, setHoldings] = useState<any[]>([])
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
-  // Search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value
-    setSearchTerm(term)
-    if (term.length >= 2) {
-      const found = fuse.search(term)
-      setResults(found.map(r => r.item))
-    } else {
-      setResults([])
-    }
-  }
-
-  // CSV — supports click OR drag & drop
-  const processFile = (file: File) => {
-    Papa.parse(file, {
-      header: true,
-      complete: (res) => {
-        const data = res.data.filter((row: any) => row.Ticker || row.Symbol)
-        setHoldings(data)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard');
       }
-    })
-  }
+      setLoading(false);
+    });
+  }, [router]);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (file) processFile(file)
-  }
+  const handleGoogleSignIn = async () => {
+    const { error } = await signInWithGoogle();
+    if (error) console.error('Error signing in:', error);
+  };
 
-  const handleClick = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.csv'
-    input.onchange = (e: any) => {
-      const file = e.target.files[0]
-      if (file) processFile(file)
-    }
-    input.click()
-  }
+  const handleGithubSignIn = async () => {
+    const { error } = await signInWithGithub();
+    if (error) console.error('Error signing in:', error);
+  };
 
-  const data = {
-    labels: ['Stocks', 'Gold', 'Crypto', 'Real Estate', 'Mutual Funds', 'NFTs', 'Cash'],
-    datasets: [{
-      data: [42, 18, 15, 12, 8, 3, 2],
-      backgroundColor: ['#4338CA', '#FCD34D', '#A855F7', '#F472B6', '#10B981', '#EC4899', '#7DD3FC'],
-      borderWidth: 2,
-      hoverOffset: 12
-    }]
-  }
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'bottom' as const, labels: { color: '#FCD34D' } }
-    }
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-indigo-950 via-purple-950 to-rose-950 text-white">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900">
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center">
+          <h1 className="mb-6 text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Orbitfolio
+          </h1>
+          <p className="mb-8 text-2xl text-gray-700 dark:text-gray-300">
+            Your Complete Portfolio Analyzer & Tracker
+          </p>
+          <p className="mb-12 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Track stocks, mutual funds, and cryptocurrencies across Indian, US, and Canadian markets.
+            Get technical analysis, fundamental insights, and real-time portfolio analytics.
+          </p>
 
-        <h1 className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-gold to-rose bg-clip-text text-transparent text-center mb-4">
-          Orbit Folio
-        </h1>
-        <p className="text-center text-sky text-xl mb-12">Your global wealth, one radiant orbit away</p>
-
-        {/* Search */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearch}
-            placeholder="Search AAPL, Reliance, Gold..."
-            className="w-full p-4 rounded-xl bg-gray-800 text-white placeholder-gray-400 border border-gray-700 focus:ring-2 focus:ring-gold"
-          />
-          {results.length > 0 && (
-            <ul className="mt-3 bg-gray-800 rounded-xl border border-gray-700">
-              {results.map(a => (
-                <li key={a.id} className="p-3 hover:bg-gold/20 cursor-pointer flex justify-between border-b border-gray-700 last:border-0">
-                  <span>{a.name} ({a.ticker})</span>
-                  <span className="text-emerald">{a.type}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* CSV Upload — click or drop */}
-        <div className="max-w-2xl mx-auto">
-          <div
-            onDrop={handleDrop}
-            onDragOver={e => e.preventDefault()}
-            onClick={handleClick}
-            className="p-12 border-4 border-dashed border-gold/50 rounded-2xl text-center hover:border-gold cursor-pointer transition mb-10"
-          >
-            <p className="text-2xl text-gold font-bold">Click or Drop CSV Here</p>
-            <p className="text-sky">Zerodha • Groww • TD • Interactive Brokers</p>
-          </div>
-
-          {/* Show holdings */}
-          {holdings.length > 0 && (
-            <div className="bg-gray-800/60 rounded-2xl p-6">
-              <h3 className="text-xl text-gold mb-4">Holdings from CSV ({holdings.length})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                {holdings.map((h: any, i) => (
-                  <div key={i} className="bg-gray-700 p-4 rounded-lg">
-                    {h.Ticker || h.Symbol || 'Unknown'} – {h.Quantity || h.Qty || '?'} × ${h.Price || '?'}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Smaller Pie Chart */}
-        <div className="max-w-2xl mx-auto mt-16 bg-gray-800/60 backdrop-blur rounded-3xl p-8">
-          <h2 className="text-2xl text-gold font-bold text-center mb-6">Portfolio Allocation</h2>
-          <div className="w-80 mx-auto">
-            <Pie data={data} options={options} />
-          </div>
-          <div className="text-center mt-6">
-            <div className="text-4xl font-bold text-gold">$48,270 USD</div>
-            <div className="text-emerald">+2.3 % today</div>
+          {/* Auth Buttons */}
+          <div className="flex gap-4 justify-center mb-16">
+            <Button
+              size="lg"
+              onClick={handleGoogleSignIn}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              Continue with Google
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleGithubSignIn}
+              className="border-2"
+            >
+              <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+              Continue with GitHub
+            </Button>
           </div>
         </div>
 
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <TrendingUp className="h-12 w-12 mb-4 text-blue-600" />
+              <CardTitle>Multi-Market Tracking</CardTitle>
+              <CardDescription>
+                Track stocks and mutual funds across Indian (NSE/BSE), US (NYSE/NASDAQ), and Canadian (TSX) markets, plus cryptocurrencies.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <BarChart3 className="h-12 w-12 mb-4 text-purple-600" />
+              <CardTitle>Technical Analysis</CardTitle>
+              <CardDescription>
+                Advanced charting with candlesticks, moving averages, RSI, MACD, Bollinger Bands, and more technical indicators.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <PieChart className="h-12 w-12 mb-4 text-pink-600" />
+              <CardTitle>Portfolio Analytics</CardTitle>
+              <CardDescription>
+                Real-time returns, risk metrics, correlation analysis, asset allocation, and comprehensive performance tracking.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <Shield className="h-12 w-12 mb-4 text-green-600" />
+              <CardTitle>Fundamental Data</CardTitle>
+              <CardDescription>
+                P/E ratios, market cap, dividend yields, 52-week highs/lows, sector analysis, and company information.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <Zap className="h-12 w-12 mb-4 text-yellow-600" />
+              <CardTitle>Smart Search</CardTitle>
+              <CardDescription>
+                Fuzzy search across 120,000+ tickers with instant results. CSV bulk upload for easy portfolio import.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <Globe className="h-12 w-12 mb-4 text-indigo-600" />
+              <CardTitle>Free Forever</CardTitle>
+              <CardDescription>
+                Built on free-tier infrastructure (Vercel + Supabase + Yahoo Finance + CoinGecko). No hidden costs.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-16 text-center text-gray-600 dark:text-gray-400">
+          <p>Built with Next.js, Supabase, TailwindCSS, and ❤️</p>
+        </div>
       </div>
-    </main>
-  )
+    </div>
+  );
 }
