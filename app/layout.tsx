@@ -1,17 +1,32 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Orbit Folio – Global Portfolio Tracker',
-  description: 'Track stocks, crypto, gold, MFs, real estate, NFTs – all in USD with live analytics.',
-}
+  title: 'Orbitfolio - Portfolio Tracker & Analyzer',
+  description: 'Track and analyze your stocks, mutual funds, and crypto portfolio across Indian, US, and Canadian markets',
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-rose-900 text-white">
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
